@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  bedrock-slack-sdxl
+
+  Sample SAM Template for bedrock-slack-sdxl
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 512
+    
+Parameters:
+  SlackBotToken:
+    Type: String
+    Default: xoxb-
+  SlackSigningSecret:
+    Type: String
+    Default: 999
+
+Resources:
+  BedrockSlackSDXLFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: function/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - arm64
+      FunctionUrlConfig:
+        AuthType: NONE
+      Environment:
+        Variables:
+          SLACK_BOT_TOKEN: !Ref SlackBotToken
+          # SLACK_APP_TOKEN: !Ref SlackAppToken
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+      Role: !GetAtt BedrockSlackSDXLRole.Arn
+  BedrockSlackSDXLRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+      Policies:
+        - PolicyName: BedrockSlackSDXLRolePolicy0
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 'bedrock:*'
+                Resource: '*'
+
+Outputs:
+  FunctionUrl:
+    Value:
+      Fn::GetAtt: BedrockSlackSDXLFunctionUrl.FunctionUrl
